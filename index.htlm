@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="preconnect" href="https://script.google.com" crossorigin>
+    <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>Secure Access | Employee HRM</title>
+    <meta name="description" content="Shwari Movers and Cleaners Team Co-ordination Portal. Supervisor and HR access only." />
+
+    <meta property="og:site_name" content="Shwari Movers & Cleaners">
+    <meta property="og:title" content="Team Co-ordination | HRM Secure Access">
+    <meta property="og:description" content="Authorized Personnel Only. Login to access team schedules and HR records.">
+    
+    <meta property="og:image" content="https://www.shutterstock.com/image-photo/portrait-black-smart-african-women-600nw-2044056773.jpg">
+    
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="400">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="theme-color" content="#1a002b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
+    
+    <style>
+        :root {
+            /* --- PURPLE THEME VARIABLES --- */
+            --saf-green: #9D00FF;  /* Electric Purple */
+            --saf-dark: #1a002b;   /* Deep Dark Purple Background */
+            --glass: rgba(255, 255, 255, 0.15);
+        }
+
+        body, html { 
+            margin: 0; padding: 0; 
+            height: 100dvh; width: 100%; 
+            overflow: hidden; 
+            background: radial-gradient(circle at 50% 30%, #2a0045 0%, var(--saf-dark) 70%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* APP CONTAINER */
+        .app-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
+            z-index: 10; opacity: 1; transform: scale(1);
+            transition: filter 0.3s ease;
+            -webkit-overflow-scrolling: touch; 
+        }
+
+        /* SECURITY LOCK STYLES */
+        .app-container.security-blur {
+            filter: blur(20px);
+            transform: scale(0.95);
+        }
+
+        #security-lock {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 0, 20, 0.9); /* Dark Purple Overlay */
+            z-index: 10000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        #security-lock.locked {
+            opacity: 1; pointer-events: all;
+        }
+
+        .lock-icon {
+            font-size: 4rem; color: #fff; margin-bottom: 20px;
+            background: var(--saf-green); width: 100px; height: 100px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(157, 0, 255, 0.4);
+        }
+
+        .lock-title {
+            color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;
+        }
+
+        .lock-desc {
+            color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 30px; text-align: center;
+            max-width: 80%;
+        }
+
+        .unlock-btn {
+            padding: 12px 40px; border-radius: 30px; border: none;
+            background: white; color: var(--saf-dark); font-weight: 700;
+            font-size: 1rem; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+        .unlock-btn:active { transform: scale(0.95); }
+
+        iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+    </style>
+</head>
+<body>
+
+   <div class="app-container" id="app-wrapper">
+        <iframe 
+            id="hrm-frame"
+            src="https://script.google.com/macros/s/AKfycbysZo7UdtncKQNFvmWDWDHUrp5ZraK-IGn4Rdprne1v/dev"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            fetchpriority="high"
+            loading="eager">
+        </iframe>
+    </div>
+
+    <div id="security-lock">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <div class="lock-title">Session Locked</div>
+        <div class="lock-desc">System locked due to inactivity.<br>HR Records secured.</div>
+        <button class="unlock-btn" onclick="unlockSystem()">Resume Session</button>
+    </div>
+
+    <script>
+        // --- SECURITY AUTO-LOCK FEATURE ---
+        let idleTime = 0;
+        let isLocked = false;
+        
+        const idleInterval = setInterval(timerIncrement, 1000); 
+
+        const resetEvents = ['mousemove', 'keypress', 'click', 'touchstart', 'scroll'];
+        resetEvents.forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (!isLocked) idleTime = 0; 
+            });
+        });
+
+        window.addEventListener('blur', () => {
+            if (!isLocked && document.activeElement === document.getElementById('hrm-frame')) {
+                idleTime = 0;
+            }
+        });
+
+        function timerIncrement() {
+            idleTime = idleTime + 1;
+            if (idleTime >= 60 && !isLocked) { 
+                lockSystem();
+            }
+        }
+
+        function lockSystem() {
+            isLocked = true;
+            document.getElementById('security-lock').classList.add('locked');
+            document.getElementById('app-wrapper').classList.add('security-blur');
+        }
+
+        function unlockSystem() {
+            isLocked = false;
+            idleTime = 0;
+            document.getElementById('security-lock').classList.remove('locked');
+            document.getElementById('app-wrapper').classList.remove('security-blur');
+        }
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // The { scope: './' } is CRITICAL. 
+                // It ensures this app does not block your other Shwari projects.
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(reg => console.log('Shwari HRM App Registered', reg))
+                    .catch(err => console.log('Registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
